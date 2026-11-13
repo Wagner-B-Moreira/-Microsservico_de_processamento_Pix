@@ -28,7 +28,7 @@ src/
       dto/         formato de entrada da API e validacoes
       entity/      entidade persistida pelo JPA
       enums/       estados da transacao
-      messaging/   publicacao SNS e consumo SQS
+        messaging/ publicacao SNS e consumo SQS
       repository/  acesso aos dados
       security/    autenticacao e autorizacao HTTP
       service/     regras de negocio do Pix
@@ -83,8 +83,8 @@ fica disponivel em `/h2-console`.
 
 ## API
 
-`POST /api/v1/pix` exige autenticacao HTTP Basic, o header `Idempotency-Key`
-(uma chave unica gerada pelo cliente para aquela operacao) e recebe:
+`POST /api/v1/pix` exige autenticacao HTTP Basic e o header `Idempotency-Key`.
+Envie uma chave unica por operacao; a chave fica associada a transacao:
 
 ```json
 {
@@ -93,11 +93,13 @@ fica disponivel em `/h2-console`.
 }
 ```
 
-O valor deve ser maior que zero e a chave Pix nao pode estar vazia. Repetir a
-requisicao com a mesma chave e os mesmos dados retorna a transacao ja criada,
-sem publicar outro evento. Reutilizar a chave com dados diferentes retorna
-HTTP `409 Conflict`. Em caso de sucesso, a API responde com HTTP `201 Created`
-e os dados da transacao.
+O valor deve ser maior que zero e a chave Pix nao pode estar vazia. Repetir,
+apos a primeira solicitacao ser registrada, a requisicao com a mesma chave e
+os mesmos dados retorna a transacao existente, sem salvar outra transacao nem
+publicar outro evento. Reutilizar a chave com dados diferentes retorna HTTP
+`409 Conflict`. Em caso de sucesso, a API responde com HTTP `201 Created` e os
+dados da transacao. Se duas primeiras solicitacoes com a mesma chave chegarem
+simultaneamente, uma delas ainda pode falhar devido a uma disputa no banco.
 O status inicial e `PENDING`; apos o consumidor processar uma mensagem da fila,
 o status passa para `COMPLETED`.
 
