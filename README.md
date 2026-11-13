@@ -83,7 +83,8 @@ fica disponivel em `/h2-console`.
 
 ## API
 
-`POST /api/v1/pix` exige autenticacao HTTP Basic e recebe:
+`POST /api/v1/pix` exige autenticacao HTTP Basic, o header `Idempotency-Key`
+(uma chave unica gerada pelo cliente para aquela operacao) e recebe:
 
 ```json
 {
@@ -92,8 +93,11 @@ fica disponivel em `/h2-console`.
 }
 ```
 
-O valor deve ser maior que zero e a chave Pix nao pode estar vazia. Em caso de
-sucesso, a API responde com HTTP `201 Created` e os dados da transacao criada.
+O valor deve ser maior que zero e a chave Pix nao pode estar vazia. Repetir a
+requisicao com a mesma chave e os mesmos dados retorna a transacao ja criada,
+sem publicar outro evento. Reutilizar a chave com dados diferentes retorna
+HTTP `409 Conflict`. Em caso de sucesso, a API responde com HTTP `201 Created`
+e os dados da transacao.
 O status inicial e `PENDING`; apos o consumidor processar uma mensagem da fila,
 o status passa para `COMPLETED`.
 
@@ -101,6 +105,7 @@ Exemplo de chamada:
 
 ```powershell
 curl.exe -u "$env:APP_SECURITY_USER`:$env:APP_SECURITY_PASS" `
+  -H "Idempotency-Key: pedido-123" `
   -H "Content-Type: application/json" `
   -d '{"chavePix":"chave-destino","valor":25.90}' `
   http://localhost:8080/api/v1/pix

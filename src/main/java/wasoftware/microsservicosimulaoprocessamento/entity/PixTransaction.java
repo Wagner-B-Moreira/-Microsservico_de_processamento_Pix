@@ -37,6 +37,9 @@ public class PixTransaction {
     @Column(nullable = false, unique = true)
     private String txid;
 
+    @Column(nullable = false, unique = true)
+    private String idempotencyKey;
+
 
     @Column(nullable = false)
      private String chavePix;

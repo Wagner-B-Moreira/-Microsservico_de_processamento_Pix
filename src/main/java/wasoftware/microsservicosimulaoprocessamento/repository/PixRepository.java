@@ -12,4 +12,6 @@ public interface PixRepository extends JpaRepository<PixTransaction, Long> {
     // Método de consulta derivado para buscar transações pelo identificador único txid
     Optional<PixTransaction> findByTxid(String txid);
 
+    Optional<PixTransaction> findByIdempotencyKey(String idempotencyKey);
+
 }
